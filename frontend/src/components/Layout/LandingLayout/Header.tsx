@@ -2,20 +2,76 @@ import React from "react";
 import { useUser } from "@/lib/auth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLogout } from "@/lib/auth";
 
 const Profile = () => {
+  const logoutFn = useLogout();
   const user = useUser();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Sample logout function; replace with your actual logic
+  const handleLogout = () => {
+    logoutFn.mutate({}, { onSuccess: () => {
+      navigate('/auth/login');
+    }})
+    // Add logout logic here (clear tokens/state, etc.)
+  };
+
   return (
-    <div className="profile-section">
-      <img
-        src="https://randomuser.me/api/portraits/men/74.jpg"
-        alt="profile"
-        className="profile-icon"
-      />
-      <span className="profile-name">{user.data.name}</span>
+    <div className="profile-section" style={{ position: "relative" }}>
+      <div
+        className="profile-clickable"
+        onClick={() => setDropdownOpen((open) => !open)}
+        tabIndex={0}
+        style={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+      >
+        <img
+          src="https://randomuser.me/api/portraits/men/74.jpg"
+          alt="profile"
+          className="profile-icon"
+        />
+        <span className="profile-name">{user.data.name}</span>
+      </div>
+      {dropdownOpen && (
+        <div className="profile-dropdown">
+          <ul>
+            <li onClick={() => { setDropdownOpen(false); navigate("/user/profile"); }}>Profile</li>
+            <li onClick={handleLogout}>Logout</li>
+          </ul>
+        </div>
+      )}
+      <style>{`
+        .profile-dropdown {
+          position: absolute;
+          top: 38px;
+          right: 0;
+          background: #212121;
+          border-radius: 8px;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+          z-index: 105;
+          min-width: 132px;
+        }
+        .profile-dropdown ul {
+          list-style: none;
+          padding: 0.5rem 0;
+          margin: 0;
+        }
+        .profile-dropdown li {
+          padding: 0.6rem 1.2rem;
+          color: #fff;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .profile-dropdown li:hover {
+          background: #282c34;
+        }
+      `}</style>
     </div>
   );
 };
+
 
 const Auth = () => {
   const navigate = useNavigate();

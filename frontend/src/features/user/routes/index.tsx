@@ -1,15 +1,15 @@
 import { lazyImport } from "@/lib/lazyImport";
+import { Navigate } from "react-router-dom";
 
-const { Dashboard } = lazyImport(() => import("./Dashboard"), "Dashboard");
-const { Users } = lazyImport(() => import("./Users"), "Users");
+const { Profile } = lazyImport(() => import("./Profile"), "Profile");
 
 export const UserRoutes = [
   {
     path: "",
-    element: <Dashboard />,
+    element: <Navigate to="/user/profile" ></Navigate>,
   },
   {
-    path: "users",
-    element: <Users />,
+    path: "profile",
+    element: <Profile />,
   },
 ];

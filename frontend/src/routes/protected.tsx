@@ -1,5 +1,5 @@
-import AdminLayout from "@/components/AdminLayout/Layout";
-import UserLayout from "@/components/UserLayout/Layout";
+import AdminLayout from "@/components/Layout/AdminLayout/Layout";
+import UserLayout from "@/components/Layout/UserLayout/Layout";
 import { AdminRoutes } from "@/features/admin";
 import { UserRoutes } from "@/features/user";
 

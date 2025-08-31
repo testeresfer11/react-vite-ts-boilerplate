@@ -11,7 +11,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useLogout } from "@/lib/auth";
+import { useLogout, useUser } from "@/lib/auth";
 
 export default function TopBar({
   toggled,
@@ -22,6 +22,7 @@ export default function TopBar({
   broken: boolean;
   setToggled: (i: boolean) => void;
 }) {
+  const user = useUser();
   const logoutFn = useLogout();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const navigate = useNavigate();
@@ -123,7 +124,7 @@ export default function TopBar({
             <Box
               sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
             >
-              <Typography>Admin User</Typography>
+              <Typography>{user?.data?.name ?? ""}</Typography>
               <IconButton
                 size="large"
                 edge="end"

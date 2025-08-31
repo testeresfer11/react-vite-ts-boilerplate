@@ -1,5 +1,5 @@
 import { Table } from "@/components/Elements/Table/Table";
-import ContentWrapper from "@/components/AdminLayout/ContentWrapper";
+import ContentWrapper from "@/components/Layout/AdminLayout/ContentWrapper";
 
 export const Users = () => {
   return (

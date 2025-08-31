@@ -2,7 +2,7 @@ import React from "react";
 import { Spinner } from "@/components/Elements";
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
-import LandingLayout from "@/components/LandingLayout/Layout";
+import LandingLayout from "@/components/Layout/LandingLayout/Layout";
 
 const UserLayout = () => {
   return (

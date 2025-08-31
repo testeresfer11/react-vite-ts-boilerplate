@@ -1,4 +1,4 @@
-import Layout from "@/components/LandingLayout/Layout";
+import Layout from "@/components/Layout/LandingLayout/Layout";
 
 const Landing = () => {
   return (
@@ -17,7 +17,6 @@ const Landing = () => {
           }
         `}</style>
       </main>
-      
     </Layout>
   );
 };
