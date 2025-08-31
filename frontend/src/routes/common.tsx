@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 
 export const commonRoutes = [
   {
-    path: "/user",
+    path: "/app",
     element: <Navigate to={"/owner"} />,
   },
 ];

@@ -7,6 +7,7 @@ import "../routes/auth.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { animations } from "./Layout";
 import useAnimateFn from "@/hooks/animate";
+import { AuthUser } from "..";
 
 const schema = z.object({
   email: z.string().min(1, "Please enter email address"),
@@ -19,7 +20,7 @@ type LoginValues = {
 };
 
 type LoginFormProps = {
-  onSuccess: () => void;
+  onSuccess: (user: AuthUser) => void;
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
@@ -34,8 +35,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
           <div className="card p-4 mt-4 mx-4">
             <Form<LoginValues, typeof schema>
               onSubmit={async (values) => {
-                values;
-                // onSuccess();
                 login.mutate(values, { onSuccess });
               }}
               options={{ defaultValues: {
