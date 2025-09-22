@@ -1,12 +1,20 @@
-  import { Pagination } from "@mui/material";
+import React from "react";
+import { Pagination } from "@mui/material";
 
-export const Table = ({ pagination = true }: { pagination?: boolean }) => {
+// Define the type for columns and rows
+type TableProps = {
+  pagination?: boolean;
+  columns: { header: string; field: string }[]; // Array of columns (header, field)
+  rows: { [key: string]: any }[]; // Array of row objects (with dynamic keys)
+};
+
+export const Table: React.FC<TableProps> = ({ pagination = true, columns, rows }) => {
   return (
     <div>
-      {pagination && (
+      {/* {pagination && (
         <div className="d-flex justify-content-between pb-3 align-items-end">
           <div className="d-flex align-items-center">
-            Show 
+            Show
             <select
               defaultValue={10}
               className="mx-2 form-control"
@@ -22,52 +30,32 @@ export const Table = ({ pagination = true }: { pagination?: boolean }) => {
             <input className="form-control" placeholder="Search" />
           </div>
         </div>
-      )}
+      )} */}
+
       <table className="table table-hover">
         <thead className="table-primary">
           <tr>
-            <th scope="col">Sr. No.</th>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Handle</th>
+            {columns.map((column, index) => (
+              <th key={index} scope="col">
+                {column.header}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          <tr className="table-row">
-            <th scope="row">1</th>
-            <td>Mark</td>
-            <td>Otto</td>
-            <td>@mdo</td>
-          </tr>
-          <tr>
-            <th scope="row">2</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-          </tr>
-          <tr>
-            <th scope="row">3</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-          </tr>
-          <tr>
-            <th scope="row">4</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-          </tr>
-          <tr>
-            <th scope="row">5</th>
-            <td>Jacob</td>
-            <td>Thornton</td>
-            <td>@fat</td>
-          </tr>
+          {rows.map((row, rowIndex) => (
+            <tr key={rowIndex}>
+              {columns.map((column, colIndex) => (
+                <td key={colIndex}>{row[column.field]}</td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
+
       {pagination && (
-        <div className="d-flex justify-content-between align-items-end">
-          <span>Showing 1 to 10 of 1000 entries</span>
+        <div className="d-flex justify-content-between pagination align-items-end">
+          <span>Showing 1 to 10 of {rows.length} entries</span>
           <Pagination
             color="primary"
             count={10}

@@ -1,6 +1,6 @@
-import styled from '@emotion/styled';
-import React from 'react';
-import logo from "@/assets/logo.png";
+import styled from "@emotion/styled";
+import React from "react";
+import logo from "@/assets/admin-logo.svg";
 
 interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -21,22 +21,28 @@ const StyledSidebarHeader = styled.div`
 
 const StyledLogo = styled.div`
   width: 100%;
-  min-width: 35px;
-  height: 35px;
   min-height: 35px;
   display: flex;
+  padding: 0px;
   align-items: center;
+  background: #20203C;
   justify-content: center;
   border-radius: 8px;
   }
 `;
 
-export const SidebarHeader: React.FC<SidebarHeaderProps> = ({ children, ...rest }) => {
+export const SidebarHeader: React.FC<SidebarHeaderProps> = ({
+  children,
+  ...rest
+}) => {
   return (
     <StyledSidebarHeader {...rest}>
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <StyledLogo><img width="100" src={logo} alt="Workflow" /></StyledLogo>
+      <div className="sidebar-logo">
+        <StyledLogo>
+          <img src={logo} alt="Workflow" />
+        </StyledLogo>
       </div>
+
     </StyledSidebarHeader>
   );
 };

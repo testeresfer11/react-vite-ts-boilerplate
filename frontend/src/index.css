@@ -1,0 +1,193 @@
+@import url("https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wght@0,200..900;1,200..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+body,
+a,
+p,
+span,
+li,
+strong,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Mona Sans", sans-serif !important;
+}
+:root {
+  --dark: #0b1739;
+  --gray: #515d80;
+  --bgcolor: #081028;
+  --cardbg: #0B1739;
+  --lighttxt: #AEB9E1;
+}
+.cardbg{
+  background-color: var(--cardbg);
+}
+.lighttxt{
+  color: var(--lighttxt);
+}
+.bgcolor {
+  background-color: var(--bgcolor);
+}
+.f-32{
+    font-size: 32px;
+}
+.border-rght {
+  border-right: 1px solid #343B4F;
+}
+.border-btm{
+  border-bottom: 1px solid #343B4F;
+}
+.f-16{
+  font-size: 16px;
+}
+.font-medium{
+  font-weight: 500;
+}
+.f-14{
+    font-size: 14px;
+}
+.f-24{
+  font-size: 24px;
+}
+.semi-bold{
+    font-weight: 600;
+}
+.reltive{
+    position: relative;
+}
+.bgdark {
+  background-color: var(--dark);
+}
+.gray {
+  color: var(--gray);
+}
+.h-100vh {
+  height: 100vh;
+}
+
+.object-cover {
+  object-fit: cover;
+}
+label.form-label, label.img-label {
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+/* auth pages */
+.login-form label.form-label {
+    display: none;
+}
+.login-form  .form-control {
+    border: 0.6px solid #343B4F;
+    background: transparent;
+    color: #ffff;
+    box-shadow: 1px 1px 1px 0px #10193466;
+    padding: 12px;
+} 
+span.passwordIcon {
+    color: #515D80;
+    top: 18px;
+}
+.forgot-pass svg.MuiSvgIcon-root {
+    fill: #515D80;
+}
+.login-form  .form-control::placeholder {
+    color: var(--gray);
+}
+.otp input[type="text"] {
+    border: 1px solid #515D80;
+    background: transparent;
+    color: #fff;
+    height: 50px;
+    width: 50px;
+    min-width: 50px;
+    border-radius: 6px;
+}
+
+.side-search input {
+  border: 1px solid #343B4F;
+  box-shadow: 0px 2px 4px 0px #01051133;
+  background: #0B1739;
+  color: #AEB9E1;
+  max-width: 88%;
+  margin: 0 auto;
+  padding: 8px 12px 8px 40px;
+}
+.side-search input::placeholder {
+  color: #AEB9E1;
+}
+.relative{
+  position: relative;
+}
+button.sidebar-btn {
+  color: #AEB9E1;
+  background: transparent;
+  border: none !important;
+  position: absolute;
+  top: 12px;
+  left: 18px;
+}
+.admin-topbar header{
+  background-color: var(--bgcolor);
+  box-shadow: none;
+}
+.dashboard-col {
+  border: 1px solid #343B4F;
+}
+span.user-down {
+  background: #FF5A6533;
+  border: 0.6px solid #FF5A6533;
+  color: #FF5A65;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  width: max-content;
+}
+span.user-down i {
+  transform: rotate(45deg);
+}
+span.user-down.up {
+  background: #05C16833;
+  border: 0.6px solid #05C16833;
+  color: #14CA74;
+}
+span.user-down.up i {
+  transform: rotate(-45deg);
+}
+.admin-user table th {
+  background: #0b1739;
+  color: #fff;
+  border: none;
+  padding: 14px;
+  font-size: 14px;
+}
+.admin-table table tr td {
+  padding: 14px;
+  font-size: 14px;
+  background: #0b1739;
+  color: #fff;
+  border: none;
+}
+.admin-table table tr:nth-child(2n + 1) td {
+  padding: 14px;
+  font-size: 14px;
+  background: #0A1330;
+  color: #fff;
+  border: none;
+}
+.admin-user {
+  padding: 20px;
+  color: #AEB9E1;
+  font-size: 14px;
+}
+.pagination  button {
+  background: #343B4F;
+  color: #aeb9e1;
+}
+.pagination button.Mui-selected {
+  background: #ae36e1;
+  border-color: #ae36e1;
+  color: #ffffff;
+}

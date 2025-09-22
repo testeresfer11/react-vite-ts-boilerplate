@@ -23,7 +23,7 @@ export const AppRoutes = () => {
     element: <NotFound />,
   };
 
-  const element = useRoutes([intialRoute, ...routes, ...commonRoutes, catchAllRoute]);
+  const element = useRoutes([intialRoute, ...routes, ...commonRoutes, ...protectedRoutes, catchAllRoute]);
 
   return <>{element}</>;
 };

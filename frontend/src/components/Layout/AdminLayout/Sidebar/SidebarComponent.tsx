@@ -11,15 +11,16 @@ import { colors } from "@/components/config";
 import { motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-
+import dash from "@/assets/dash.svg";
 const themes = {
   light: {
     sidebar: {
-      backgroundColor: "#f8f7f7",
-      color: "#607489",
+      backgroundColor: "#081028",
+      boxShadow: "0px 8px 28px 0px #0105114D",
+      color: "#AEB9E1",
     },
     menu: {
-      menuContent: "#fbfcfd",
+      menuContent: "#AEB9E1",
       icon: colors.primary,
       hover: {
         backgroundColor: colors.secondary,
@@ -44,7 +45,7 @@ const hexToRgba = (hex: string, alpha: number) => {
 export const SidebarComponent = ({
   toggled,
   setToggled,
-  setBroken
+  setBroken,
 }: {
   toggled: boolean;
   setToggled: (i: boolean) => void;
@@ -52,14 +53,14 @@ export const SidebarComponent = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [active, setActive] = useState('');
+  const [active, setActive] = useState("");
   const to = (url: string) => () => {
     navigate(url);
-  } 
+  };
 
   const menuItemStyles: MenuItemStyles = {
     root: {
-      fontSize: "13px",
+      fontSize: "14px",
       fontWeight: 400,
     },
     icon: {
@@ -82,12 +83,12 @@ export const SidebarComponent = ({
         color: themes.light.menu.disabled.color,
       },
       "&:hover": {
-        backgroundColor: hexToRgba(themes.light.menu.hover.backgroundColor, 1),
-        color: themes.light.menu.hover.color,
+        backgroundColor: "#081028",
+        color: "#CB3CFF",
       },
       [`&.ps-active`]: {
-        backgroundColor: colors.secondary,
-        color: '#000',
+        backgroundColor: "#081028",
+        color: "#CB3CFF",
       },
     },
     label: ({ open }) => ({
@@ -97,31 +98,33 @@ export const SidebarComponent = ({
 
   useEffect(() => {
     const pathName = location.pathname;
-    const parts = pathName.split('/');
-    if(parts.length > 2){
+    const parts = pathName.split("/");
+    if (parts.length > 2) {
       const part = parts[2];
       setActive(part);
-    }else{
-      setActive('');
-      
+    } else {
+      setActive("");
     }
-    
   }, [location]);
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -100 }}
-      animate={{ opacity: 1, x: 0 }}>
+      animate={{ opacity: 1, x: 0 }}
+    >
+      
       <Sidebar
         toggled={toggled}
         onBackdropClick={() => setToggled(false)}
         onBreakPoint={setBroken}
         breakPoint="md"
+        className="admin-sidebar border-0"
         backgroundColor={hexToRgba(themes.light.sidebar.backgroundColor, 1)}
         rootStyles={{
           color: themes.light.sidebar.color,
         }}
       >
+
         <div
           style={{
             display: "flex",
@@ -130,14 +133,30 @@ export const SidebarComponent = ({
           }}
         >
           <SidebarHeader style={{ marginBottom: "24px", marginTop: "16px" }} />
+          <div className="sidebar-search">
+        <form className="side-search relative">
+          <input className="form-control" placeholder="Search" />
+          <button className="sidebar-btn">
+            <i className="fa fa-search" />
+          </button>
+        </form>
+      </div>
           <div style={{ flex: 1, marginBottom: "32px" }}>
             <Menu menuItemStyles={menuItemStyles}>
-              <MenuItem onClick={to('/admin')} active={active === ''} icon={<i className="fa-solid fa-user"></i>}>
+              <MenuItem
+                onClick={to("/admin")}
+                active={active === ""}
+                icon={<img src={dash} className="menu-icon" />}
+              >
                 Dashboard
               </MenuItem>
             </Menu>
             <Menu menuItemStyles={menuItemStyles}>
-              <MenuItem onClick={to('/admin/users')} active={active === 'users'} icon={<i className="fa-solid fa-user"></i>}>
+              <MenuItem
+                onClick={to("/admin/users")}
+                active={active === "users"}
+                icon={<i className="fa-solid fa-user"></i>}
+              >
                 Users
               </MenuItem>
             </Menu>

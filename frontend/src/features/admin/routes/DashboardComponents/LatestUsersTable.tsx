@@ -1,7 +1,6 @@
 import { Table } from "@/components/Elements/Table/Table";
-import ContentWrapper from "@/components/Layout/AdminLayout/ContentWrapper";
 
-export const Users = () => {
+const LatestUsersTable = () => {
   const columns = [
     { header: "Sr. No.", field: "id" },
     { header: " Name", field: "name" },
@@ -29,8 +28,7 @@ export const Users = () => {
     },
   ];
   return (
-    <ContentWrapper title="Users">
-     <div className="admin-table table-card">
+    <div className="admin-table table-card">
       <div className="table-header border-btm p-3">
         <h3 className="text-white f-16 font-medium mb-0">Latest User</h3>
       </div>
@@ -38,6 +36,7 @@ export const Users = () => {
         <Table pagination={true} columns={columns} rows={rows} />
       </div>
     </div>
-    </ContentWrapper>
   );
 };
+
+export default LatestUsersTable;

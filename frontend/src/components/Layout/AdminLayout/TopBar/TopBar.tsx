@@ -101,12 +101,12 @@ export default function TopBar({
   );
 
   return (
-    <motion.div
+    <motion.div className="bgcolor admin-topbar"
       initial={{ opacity: 0, y: -100 }}
       animate={{ opacity: 1, y: 0 }}>
 
-      <Box sx={{ flexGrow: 1 }}>
-        <AppBar color="default" position="static">
+      <Box sx={{ flexGrow: 1, background: "#081028" }}>
+        <AppBar className="bgcolor" color="default" position="static">
           <Toolbar>
             {broken && (
               <IconButton
