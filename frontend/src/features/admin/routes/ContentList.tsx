@@ -1,45 +1,52 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pagination } from "@mui/material";
+import { z } from "zod";
 import ContentWrapper from "@/components/Layout/AdminLayout/ContentWrapper";
-import { Button } from "@/components/Elements";
+import { Button, ConfirmationDialog } from "@/components/Elements";
 import { Table } from "@/components/Elements/Table/Table";
 import { Spinner } from "@/components/Elements/Spinner";
-import { useContents, useDeleteContent } from "../hooks/useContent";
+import { Form } from "@/components/Form";
+import { useContents } from "../hooks/useContents";
+import { useDeleteContent } from "../hooks/useDeleteContent";
 import { Content } from "../api/content";
+
+const searchSchema = z.object({
+    search: z.string().optional(),
+});
+
+type SearchValues = z.infer<typeof searchSchema>;
 
 export const ContentList = () => {
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
-    const [searchInput, setSearchInput] = useState("");
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     // React Query hooks
     const { data, isLoading, isError } = useContents({ page, limit: 10, search });
     const deleteContentMutation = useDeleteContent();
-    console.log(data,'data')
-    const contents = data?.data?.data || [];
-    const pagination = data?.data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
-
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setSearch(searchInput);
-        setPage(1);
-    };
+    const contents = data?.data || [];
+    const pagination = data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
 
     const handlePageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {
         setPage(newPage);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm("Are you sure you want to delete this content?")) {
-            setDeletingId(id);
-            try {
-                await deleteContentMutation.mutateAsync(id);
-            } finally {
-                setDeletingId(null);
-            }
+    const handleDeleteClick = (id: string) => {
+        setDeletingId(id);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingId) return;
+        try {
+            await deleteContentMutation.mutateAsync(deletingId);
+            setIsDeleteModalOpen(false);
+            setDeletingId(null);
+        } catch (error) {
+            // Error handling if needed, usually global error handler catches it
         }
     };
 
@@ -87,15 +94,10 @@ export const ContentList = () => {
                 </button>
                 <button
                     className="delete-btn bg-transparent p-0 border-0"
-                    onClick={() => handleDelete(content._id)}
-                    disabled={deleteContentMutation.isLoading && deletingId === content._id}
+                    onClick={() => handleDeleteClick(content._id)}
                     title="Delete"
                 >
-                    {deleteContentMutation.isLoading && deletingId === content._id ? (
-                        <Spinner size="sm" />
-                    ) : (
-                        <i className="fa-solid fa-trash lighttxt"></i>
-                    )}
+                    <i className="fa-solid fa-trash lighttxt"></i>
                 </button>
             </div>
         ),
@@ -121,19 +123,29 @@ export const ContentList = () => {
                     {/* Table Header with Search */}
                     <div className="table-header border-btm p-3 d-flex justify-content-between align-items-center">
                         <h3 className="text-white f-16 font-medium mb-0">All Content</h3>
-                        <form onSubmit={handleSearchSubmit} className="d-flex gap-2">
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Search content..."
-                                value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
-                                style={{ width: "250px" }}
-                            />
-                            <Button type="submit" variant="primary">
-                                Search
-                            </Button>
-                        </form>
+                        <Form<SearchValues, typeof searchSchema>
+                            onSubmit={(values) => {
+                                setSearch(values.search || "");
+                                setPage(1);
+                            }}
+                            schema={searchSchema}
+                            className="d-flex gap-2"
+                        >
+                            {({ register }) => (
+                                <>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Search content..."
+                                        style={{ width: "250px" }}
+                                        {...register("search")}
+                                    />
+                                    <Button type="submit" variant="primary">
+                                        Search
+                                    </Button>
+                                </>
+                            )}
+                        </Form>
                     </div>
 
                     {/* Table Content */}
@@ -175,6 +187,19 @@ export const ContentList = () => {
                         )}
                     </div>
                 </div>
+
+                <ConfirmationDialog
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => {
+                        setIsDeleteModalOpen(false);
+                        setDeletingId(null);
+                    }}
+                    onConfirm={handleConfirmDelete}
+                    title="Delete Content"
+                    body="Are you sure you want to delete this content? This action cannot be undone."
+                    confirmButtonText="Delete"
+                    isLoading={deleteContentMutation.isLoading}
+                />
             </div>
         </ContentWrapper>
     );

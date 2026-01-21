@@ -1,11 +1,22 @@
-import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { z } from "zod";
+import { Controller } from "react-hook-form";
 import ContentWrapper from "@/components/Layout/AdminLayout/ContentWrapper";
 import { Button } from "@/components/Elements";
 import { Spinner } from "@/components/Elements/Spinner";
-import { useContent, useUpdateContent } from "../hooks/useContent";
+import { Form, InputField, TextAreaField } from "@/components/Form";
+import { useContent } from "../hooks/useContent";
+import { useUpdateContent } from "../hooks/useUpdateContent";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+
+const schema = z.object({
+    name: z.string().min(1, "Name is required"),
+    description: z.string().min(1, "Description is required"),
+    content: z.string().min(1, "Content is required"),
+});
+
+type ContentEditValues = z.infer<typeof schema>;
 
 export const ContentEdit = () => {
     const navigate = useNavigate();
@@ -14,72 +25,6 @@ export const ContentEdit = () => {
     // React Query hooks
     const { data: contentResponse, isLoading: fetchLoading } = useContent(id || "");
     const updateContentMutation = useUpdateContent();
-
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        content: "",
-    });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-    // Populate form when content is fetched
-    useEffect(() => {
-        if (contentResponse?.data) {
-            setFormData({
-                name: contentResponse.data.name,
-                description: contentResponse.data.description,
-                content: contentResponse.data.content,
-            });
-        }
-    }, [contentResponse]);
-
-    const validateForm = () => {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!formData.name.trim()) {
-            newErrors.name = "Name is required";
-        }
-        if (!formData.description.trim()) {
-            newErrors.description = "Description is required";
-        }
-        if (!formData.content.trim()) {
-            newErrors.content = "Content is required";
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm() || !id) return;
-
-        try {
-            await updateContentMutation.mutateAsync({ id, data: formData });
-            navigate("/admin/content");
-        } catch (error) {
-            // Error is handled in hook
-        }
-    };
-
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        if (errors[name]) {
-            setErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
-
-    const handleEditorChange = (_event: any, editor: any) => {
-        const data = editor.getData();
-        setFormData((prev) => ({ ...prev, content: data }));
-        if (errors.content) {
-            setErrors((prev) => ({ ...prev, content: "" }));
-        }
-    };
 
     if (fetchLoading) {
         return (
@@ -93,6 +38,8 @@ export const ContentEdit = () => {
             </ContentWrapper>
         );
     }
+
+    if (!contentResponse?.data) return null;
 
     return (
         <ContentWrapper title="Edit Content">
@@ -112,98 +59,114 @@ export const ContentEdit = () => {
 
                 {/* Form Card */}
                 <div className="cardbg rounded-lg p-4">
-                    <form onSubmit={handleSubmit}>
-                        {/* Name Field */}
-                        <div className="mb-4">
-                            <label className="form-label text-white">
-                                Name <span className="text-danger">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                className={`form-control ${errors.name ? "is-invalid" : ""}`}
-                                name="name"
-                                value={formData.name}
-                                onChange={handleInputChange}
-                                placeholder="Enter content name"
-                            />
-                            {errors.name && (
-                                <div className="invalid-feedback">{errors.name}</div>
-                            )}
-                        </div>
+                    <Form<ContentEditValues, typeof schema>
+                        onSubmit={async (values) => {
+                            if (!id) return;
+                            await updateContentMutation.mutateAsync({ id, data: values });
+                            navigate("/admin/content");
+                        }}
+                        schema={schema}
+                        options={{
+                            defaultValues: {
+                                name: contentResponse.data.name,
+                                description: contentResponse.data.description,
+                                content: contentResponse.data.content,
+                            },
+                        }}
+                    >
+                        {({ register, formState: { errors }, control }) => (
+                            <>
+                                {/* Name Field */}
+                                <div className="mb-4">
+                                    <label className="form-label text-white">
+                                        Name <span className="text-danger">*</span>
+                                    </label>
+                                    <InputField
+                                        registration={register("name")}
+                                        error={errors.name}
+                                        placeholder="Enter content name"
+                                    />
+                                </div>
 
-                        {/* Description Field */}
-                        <div className="mb-4">
-                            <label className="form-label text-white">
-                                Description <span className="text-danger">*</span>
-                            </label>
-                            <textarea
-                                className={`form-control ${errors.description ? "is-invalid" : ""}`}
-                                name="description"
-                                value={formData.description}
-                                onChange={handleInputChange}
-                                placeholder="Enter content description"
-                                rows={3}
-                            />
-                            {errors.description && (
-                                <div className="invalid-feedback">{errors.description}</div>
-                            )}
-                        </div>
+                                {/* Description Field */}
+                                <div className="mb-4">
+                                    <label className="form-label text-white">
+                                        Description <span className="text-danger">*</span>
+                                    </label>
+                                    <TextAreaField
+                                        registration={register("description")}
+                                        error={errors.description}
+                                        placeholder="Enter content description"
+                                        rows={3}
+                                    />
+                                </div>
 
-                        {/* Content Field with CKEditor */}
-                        <div className="mb-4">
-                            <label className="form-label text-white">
-                                Content <span className="text-danger">*</span>
-                            </label>
-                            <div
-                                className={`ckeditor-wrapper ${errors.content ? "is-invalid-editor" : ""}`}
-                            >
-                                <CKEditor
-                                    editor={ClassicEditor}
-                                    data={formData.content}
-                                    onChange={handleEditorChange}
-                                    config={{
-                                        placeholder: "Enter your content here...",
-                                        toolbar: [
-                                            "heading",
-                                            "|",
-                                            "bold",
-                                            "italic",
-                                            "link",
-                                            "bulletedList",
-                                            "numberedList",
-                                            "|",
-                                            "blockQuote",
-                                            "insertTable",
-                                            "|",
-                                            "undo",
-                                            "redo",
-                                        ],
-                                    }}
-                                />
-                            </div>
-                            {errors.content && (
-                                <div className="text-danger small mt-1">{errors.content}</div>
-                            )}
-                        </div>
+                                {/* Content Field with CKEditor */}
+                                <div className="mb-4">
+                                    <label className="form-label text-white">
+                                        Content <span className="text-danger">*</span>
+                                    </label>
+                                    <Controller
+                                        name="content"
+                                        control={control}
+                                        render={({ field: { onChange, value } }) => (
+                                            <div
+                                                className={`ckeditor-wrapper ${errors.content ? "is-invalid-editor" : ""}`}
+                                            >
+                                                <CKEditor
+                                                    editor={ClassicEditor}
+                                                    data={value || ""}
+                                                    onChange={(_event: any, editor: any) => {
+                                                        const data = editor.getData();
+                                                        onChange(data);
+                                                    }}
+                                                    config={{
+                                                        placeholder: "Enter your content here...",
+                                                        toolbar: [
+                                                            "heading",
+                                                            "|",
+                                                            "bold",
+                                                            "italic",
+                                                            "link",
+                                                            "bulletedList",
+                                                            "numberedList",
+                                                            "|",
+                                                            "blockQuote",
+                                                            "insertTable",
+                                                            "|",
+                                                            "undo",
+                                                            "redo",
+                                                        ],
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    />
+                                    {errors.content && (
+                                        <div className="text-danger small mt-1">{errors.content?.message}</div>
+                                    )}
+                                </div>
 
-                        {/* Action Buttons */}
-                        <div className="d-flex gap-3 justify-content-end mt-4">
-                            <Button
-                                variant="outline"
-                                type="button"
-                                onClick={() => navigate("/admin/content")}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                variant="primary"
-                                type="submit"
-                                isLoading={updateContentMutation.isLoading}
-                            >
-                                Update Content
-                            </Button>
-                        </div>
-                    </form>
+                                {/* Action Buttons */}
+                                <div className="d-flex gap-3 justify-content-end mt-4">
+                                    <Button
+                                        variant="outline"
+                                        type="button"
+                                        onClick={() => navigate("/admin/content")}
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        variant="primary"
+                                        type="submit"
+                                        isLoading={updateContentMutation.isLoading}
+                                    >
+                                        Update Content
+                                    </Button>
+                                </div>
+                            </>
+                        )}
+                    </Form>
                 </div>
             </div>
 

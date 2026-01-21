@@ -1,4 +1,4 @@
-import { axios, axios2 } from "@/lib/axios";
+import { axios } from "@/lib/axios";
 
 // Types
 export interface Content {

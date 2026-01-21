@@ -2,7 +2,6 @@ import {
   Sidebar,
   Menu,
   MenuItem,
-  SubMenu,
   menuClasses,
   MenuItemStyles,
 } from "react-pro-sidebar";
@@ -190,7 +189,7 @@ export const SidebarComponent = ({
               </MenuItem>
             </Menu>
             <hr />
-            <div onClick={()=>navigate('/admin/profile')} style={{cursor:'pointer'}} className="account-info px-3 d-flex gap-3 align-items-center">
+            <div onClick={to('/admin/profile')} style={{ cursor: 'pointer' }} className="account-info px-3 d-flex gap-3 align-items-center">
               <img src={admin} className="admin-account-icon" />
               <div className="right-details">
                 <h6 className="font-medium f-14 mb-0 text-white">John Carter</h6>

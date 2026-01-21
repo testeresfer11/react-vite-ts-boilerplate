@@ -50,7 +50,7 @@ axios2.interceptors.response.use(
   (error) => {
     if (error?.response?.status === 401) {
       storage.clearToken();
-      // window.location.assign(window.location.origin as unknown as string);
+      window.location.assign(window.location.origin as unknown as string);
     }
 
     const message = error.response?.data?.message || error.message;

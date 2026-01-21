@@ -1,12 +1,46 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { z } from "zod";
 import ContentWrapper from "@/components/Layout/AdminLayout/ContentWrapper";
 import { Button } from "@/components/Elements";
 import { Spinner } from "@/components/Elements/Spinner";
 import { useUser } from "@/lib/auth";
-import { useUpdateProfile, useChangePassword } from "../hooks/useProfile";
+import { Form, InputField, TextAreaField } from "@/components/Form";
+import { useUpdateProfile } from "../hooks/useUpdateProfile";
+import { useChangePassword } from "../hooks/useChangePassword";
 
 type TabType = "profile" | "password";
+
+const profileSchema = z.object({
+    name: z.string().min(1, "Display Name is required"),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().min(1, "Email is required").email("Invalid email format"),
+    phone: z.string().optional(),
+    address: z.string().optional(),
+});
+
+const passwordSchema = z
+    .object({
+        oldPassword: z.string().min(1, "Current password is required"),
+        newPassword: z
+            .string()
+            .min(8, "Password must be at least 8 characters")
+            .regex(/[a-zA-Z]/, "Must contain at least one letter")
+            .regex(/\d/, "Must contain at least one number"),
+        confirmPassword: z.string().min(1, "Please confirm your new password"),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    })
+    .refine((data) => data.oldPassword !== data.newPassword, {
+        message: "New password cannot be the same as the current password",
+        path: ["newPassword"],
+    });
+
+type ProfileValues = z.infer<typeof profileSchema>;
+type PasswordValues = z.infer<typeof passwordSchema>;
 
 export const ProfileEdit = () => {
     const navigate = useNavigate();
@@ -17,30 +51,6 @@ export const ProfileEdit = () => {
 
     const [activeTab, setActiveTab] = useState<TabType>("profile");
 
-    // Profile form state
-    const [profileData, setProfileData] = useState({
-        name: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        address: "",
-    });
-    const [profileErrors, setProfileErrors] = useState<{ [key: string]: string }>({});
-
-    // Password form state
-    const [passwordData, setPasswordData] = useState({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
-    const [passwordErrors, setPasswordErrors] = useState<{ [key: string]: string }>({});
-    const [showPasswords, setShowPasswords] = useState({
-        old: false,
-        new: false,
-        confirm: false,
-    });
-
     // Set active tab from URL params
     useEffect(() => {
         const tab = searchParams.get("tab");
@@ -48,128 +58,6 @@ export const ProfileEdit = () => {
             setActiveTab("password");
         }
     }, [searchParams]);
-
-    // Populate form when user data is loaded
-    useEffect(() => {
-        if (user?.data) {
-            setProfileData({
-                name: user.data.name || "",
-                firstName: user.data.firstName || "",
-                lastName: user.data.lastName || "",
-                email: user.data.email || "",
-                phone: user.data.phone || "",
-                address: user.data.address || "",
-            });
-        }
-    }, [user?.data]);
-
-    const validateProfileForm = () => {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!profileData.name.trim() && !profileData.firstName.trim()) {
-            newErrors.name = "Name is required";
-        }
-        if (!profileData.email.trim()) {
-            newErrors.email = "Email is required";
-        } else if (!/\S+@\S+\.\S+/.test(profileData.email)) {
-            newErrors.email = "Invalid email format";
-        }
-
-        setProfileErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const validatePasswordForm = () => {
-        const newErrors: { [key: string]: string } = {};
-
-        if (!passwordData.oldPassword) {
-            newErrors.oldPassword = "Current password is required";
-        }
-        if (!passwordData.newPassword) {
-            newErrors.newPassword = "New password is required";
-        } else if (passwordData.newPassword.length < 8) {
-            newErrors.newPassword = "Password must be at least 8 characters";
-        } else if (!/\d/.test(passwordData.newPassword) || !/[a-zA-Z]/.test(passwordData.newPassword)) {
-            newErrors.newPassword = "Password must contain at least one letter and one number";
-        }
-        if (!passwordData.confirmPassword) {
-            newErrors.confirmPassword = "Please confirm your new password";
-        } else if (passwordData.newPassword !== passwordData.confirmPassword) {
-            newErrors.confirmPassword = "Passwords do not match";
-        }
-        if (passwordData.oldPassword === passwordData.newPassword && passwordData.oldPassword) {
-            newErrors.newPassword = "New password cannot be the same as the current password";
-        }
-
-        setPasswordErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleProfileSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateProfileForm()) return;
-
-        try {
-            await updateProfileMutation.mutateAsync({
-                name: profileData.name,
-                firstName: profileData.firstName,
-                lastName: profileData.lastName,
-                email: profileData.email,
-                phone: profileData.phone,
-                address: profileData.address,
-            });
-            navigate("/admin/profile");
-        } catch (error) {
-            // Error is handled in hook
-        }
-    };
-
-    const handlePasswordSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validatePasswordForm()) return;
-
-        try {
-            await changePasswordMutation.mutateAsync({
-                oldPassword: passwordData.oldPassword,
-                newPassword: passwordData.newPassword,
-            });
-            // Reset password form on success
-            setPasswordData({
-                oldPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-            navigate("/admin/profile");
-        } catch (error) {
-            // Error is handled in hook
-        }
-    };
-
-    const handleProfileInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        setProfileData((prev) => ({ ...prev, [name]: value }));
-        if (profileErrors[name]) {
-            setProfileErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
-
-    const handlePasswordInputChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const { name, value } = e.target;
-        setPasswordData((prev) => ({ ...prev, [name]: value }));
-        if (passwordErrors[name]) {
-            setPasswordErrors((prev) => ({ ...prev, [name]: "" }));
-        }
-    };
-
-    const togglePasswordVisibility = (field: "old" | "new" | "confirm") => {
-        setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
-    };
 
     if (user?.isLoading) {
         return (
@@ -223,144 +111,148 @@ export const ProfileEdit = () => {
                     {/* Profile Tab Content */}
                     {activeTab === "profile" && (
                         <div className="p-4">
-                            <form onSubmit={handleProfileSubmit}>
-                                {/* Profile Picture Section */}
-                                <div className="text-center mb-4">
-                                    <div className="profile-avatar-edit mx-auto mb-3">
-                                        {user?.data?.image ? (
-                                            <img
-                                                src={user.data.image}
-                                                alt={user.data.name}
-                                                className="rounded-circle"
-                                                style={{ width: "120px", height: "120px", objectFit: "cover" }}
-                                            />
-                                        ) : (
-                                            <div
-                                                className="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center mx-auto"
-                                                style={{
-                                                    width: "120px",
-                                                    height: "120px",
-                                                    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                                    fontSize: "3rem",
-                                                    color: "#fff",
-                                                    fontWeight: "600",
-                                                }}
-                                            >
-                                                {user?.data?.name?.charAt(0)?.toUpperCase() || "A"}
+                            <div className="text-center mb-4">
+                                <div className="profile-avatar-edit mx-auto mb-3">
+                                    {user?.data?.image ? (
+                                        <img
+                                            src={user.data.image}
+                                            alt={user.data.name}
+                                            className="rounded-circle"
+                                            style={{ width: "120px", height: "120px", objectFit: "cover" }}
+                                        />
+                                    ) : (
+                                        <div
+                                            className="avatar-placeholder rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                            style={{
+                                                width: "120px",
+                                                height: "120px",
+                                                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                                fontSize: "3rem",
+                                                color: "#fff",
+                                                fontWeight: "600",
+                                            }}
+                                        >
+                                            {user?.data?.name?.charAt(0)?.toUpperCase() || "A"}
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="lighttxt small mb-0">Profile photo is managed through account settings</p>
+                            </div>
+
+                            <Form<ProfileValues, typeof profileSchema>
+                                onSubmit={async (values) => {
+                                    await updateProfileMutation.mutateAsync({
+                                        ...values,
+                                        firstName: values.firstName || "",
+                                        lastName: values.lastName || "",
+                                        phone: values.phone || "",
+                                        address: values.address || "",
+                                    });
+                                    navigate("/admin/profile");
+                                }}
+                                schema={profileSchema}
+                                options={{
+                                    defaultValues: {
+                                        name: user?.data?.name || "",
+                                        firstName: user?.data?.firstName || "",
+                                        lastName: user?.data?.lastName || "",
+                                        email: user?.data?.email || "",
+                                        phone: user?.data?.phone || "",
+                                        address: user?.data?.address || "",
+                                    },
+                                }}
+                            >
+                                {({ register, formState: { errors } }) => (
+                                    <>
+                                        <div className="row g-4">
+                                            {/* Name Field */}
+                                            <div className="col-md-12">
+                                                <label className="form-label text-white">
+                                                    Display Name <span className="text-danger">*</span>
+                                                </label>
+                                                <InputField
+                                                    registration={register("name")}
+                                                    error={errors.name}
+                                                    placeholder="Enter your display name"
+                                                />
                                             </div>
-                                        )}
-                                    </div>
-                                    <p className="lighttxt small mb-0">Profile photo is managed through account settings</p>
-                                </div>
 
-                                <div className="row g-4">
-                                    {/* Name Field */}
-                                    <div className="col-md-12">
-                                        <label className="form-label text-white">
-                                            Display Name <span className="text-danger">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            className={`form-control ${profileErrors.name ? "is-invalid" : ""}`}
-                                            name="name"
-                                            value={profileData.name}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter your display name"
-                                        />
-                                        {profileErrors.name && (
-                                            <div className="invalid-feedback">{profileErrors.name}</div>
-                                        )}
-                                    </div>
+                                            {/* First Name */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">First Name</label>
+                                                <InputField
+                                                    registration={register("firstName")}
+                                                    error={errors.firstName}
+                                                    placeholder="Enter first name"
+                                                />
+                                            </div>
 
-                                    {/* First Name */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">First Name</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="firstName"
-                                            value={profileData.firstName}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter first name"
-                                        />
-                                    </div>
+                                            {/* Last Name */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">Last Name</label>
+                                                <InputField
+                                                    registration={register("lastName")}
+                                                    error={errors.lastName}
+                                                    placeholder="Enter last name"
+                                                />
+                                            </div>
 
-                                    {/* Last Name */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">Last Name</label>
-                                        <input
-                                            type="text"
-                                            className="form-control"
-                                            name="lastName"
-                                            value={profileData.lastName}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter last name"
-                                        />
-                                    </div>
+                                            {/* Email */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">
+                                                    Email Address <span className="text-danger">*</span>
+                                                </label>
+                                                <InputField
+                                                    registration={register("email")}
+                                                    error={errors.email}
+                                                    placeholder="Enter email address"
+                                                    type="email"
+                                                />
+                                            </div>
 
-                                    {/* Email */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">
-                                            Email Address <span className="text-danger">*</span>
-                                        </label>
-                                        <input
-                                            type="email"
-                                            className={`form-control ${profileErrors.email ? "is-invalid" : ""}`}
-                                            name="email"
-                                            value={profileData.email}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter email address"
-                                        />
-                                        {profileErrors.email && (
-                                            <div className="invalid-feedback">{profileErrors.email}</div>
-                                        )}
-                                    </div>
+                                            {/* Phone */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">Phone Number</label>
+                                                <InputField
+                                                    registration={register("phone")}
+                                                    error={errors.phone}
+                                                    placeholder="Enter phone number"
+                                                    type="phone"
+                                                />
+                                            </div>
 
-                                    {/* Phone */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            className="form-control"
-                                            name="phone"
-                                            value={profileData.phone}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter phone number"
-                                        />
-                                    </div>
+                                            {/* Address */}
+                                            <div className="col-12">
+                                                <label className="form-label text-white">Address</label>
+                                                <TextAreaField
+                                                    registration={register("address")}
+                                                    error={errors.address}
+                                                    placeholder="Enter your address"
+                                                    rows={3}
+                                                />
+                                            </div>
+                                        </div>
 
-                                    {/* Address */}
-                                    <div className="col-12">
-                                        <label className="form-label text-white">Address</label>
-                                        <textarea
-                                            className="form-control"
-                                            name="address"
-                                            value={profileData.address}
-                                            onChange={handleProfileInputChange}
-                                            placeholder="Enter your address"
-                                            rows={3}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="d-flex gap-3 justify-content-end mt-4 pt-4 border-top" style={{ borderColor: "rgba(255,255,255,0.1) !important" }}>
-                                    <Button
-                                        variant="outline"
-                                        type="button"
-                                        onClick={() => navigate("/admin/profile")}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        type="submit"
-                                        isLoading={updateProfileMutation.isLoading}
-                                    >
-                                        Save Changes
-                                    </Button>
-                                </div>
-                            </form>
+                                        {/* Action Buttons */}
+                                        <div className="d-flex gap-3 justify-content-end mt-4 pt-4 border-top" style={{ borderColor: "rgba(255,255,255,0.1) !important" }}>
+                                            <Button
+                                                variant="outline"
+                                                type="button"
+                                                onClick={() => navigate("/admin/profile")}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                type="submit"
+                                                isLoading={updateProfileMutation.isLoading}
+                                            >
+                                                Save Changes
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </Form>
                         </div>
                     )}
 
@@ -382,108 +274,80 @@ export const ProfileEdit = () => {
                                 </div>
                             </div>
 
-                            <form onSubmit={handlePasswordSubmit}>
-                                <div className="row g-4">
-                                    {/* Current Password */}
-                                    <div className="col-12">
-                                        <label className="form-label text-white">
-                                            Current Password <span className="text-danger">*</span>
-                                        </label>
-                                        <div className="input-group">
-                                            <input
-                                                type={showPasswords.old ? "text" : "password"}
-                                                className={`form-control ${passwordErrors.oldPassword ? "is-invalid" : ""}`}
-                                                name="oldPassword"
-                                                value={passwordData.oldPassword}
-                                                onChange={handlePasswordInputChange}
-                                                placeholder="Enter current password"
-                                            />
-                                            <button
-                                                className="btn btn-outline-secondary"
-                                                type="button"
-                                                onClick={() => togglePasswordVisibility("old")}
-                                            >
-                                                <i className={`fa-solid ${showPasswords.old ? "fa-eye-slash" : "fa-eye"}`}></i>
-                                            </button>
-                                            {passwordErrors.oldPassword && (
-                                                <div className="invalid-feedback">{passwordErrors.oldPassword}</div>
-                                            )}
-                                        </div>
-                                    </div>
+                            <Form<PasswordValues, typeof passwordSchema>
+                                onSubmit={async (values, methods) => {
+                                    await changePasswordMutation.mutateAsync({
+                                        oldPassword: values.oldPassword,
+                                        newPassword: values.newPassword,
+                                    });
+                                    methods.reset();
+                                    navigate("/admin/profile");
+                                }}
+                                schema={passwordSchema}
+                            >
+                                {({ register, formState: { errors } }) => (
+                                    <>
+                                        <div className="row g-4">
+                                            {/* Current Password */}
+                                            <div className="col-12">
+                                                <label className="form-label text-white">
+                                                    Current Password <span className="text-danger">*</span>
+                                                </label>
+                                                <InputField
+                                                    registration={register("oldPassword")}
+                                                    error={errors.oldPassword}
+                                                    placeholder="Enter current password"
+                                                    type="password"
+                                                />
+                                            </div>
 
-                                    {/* New Password */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">
-                                            New Password <span className="text-danger">*</span>
-                                        </label>
-                                        <div className="input-group">
-                                            <input
-                                                type={showPasswords.new ? "text" : "password"}
-                                                className={`form-control ${passwordErrors.newPassword ? "is-invalid" : ""}`}
-                                                name="newPassword"
-                                                value={passwordData.newPassword}
-                                                onChange={handlePasswordInputChange}
-                                                placeholder="Enter new password"
-                                            />
-                                            <button
-                                                className="btn btn-outline-secondary"
-                                                type="button"
-                                                onClick={() => togglePasswordVisibility("new")}
-                                            >
-                                                <i className={`fa-solid ${showPasswords.new ? "fa-eye-slash" : "fa-eye"}`}></i>
-                                            </button>
-                                            {passwordErrors.newPassword && (
-                                                <div className="invalid-feedback">{passwordErrors.newPassword}</div>
-                                            )}
-                                        </div>
-                                    </div>
+                                            {/* New Password */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">
+                                                    New Password <span className="text-danger">*</span>
+                                                </label>
+                                                <InputField
+                                                    registration={register("newPassword")}
+                                                    error={errors.newPassword}
+                                                    placeholder="Enter new password"
+                                                    type="password"
+                                                />
+                                            </div>
 
-                                    {/* Confirm Password */}
-                                    <div className="col-md-6">
-                                        <label className="form-label text-white">
-                                            Confirm New Password <span className="text-danger">*</span>
-                                        </label>
-                                        <div className="input-group">
-                                            <input
-                                                type={showPasswords.confirm ? "text" : "password"}
-                                                className={`form-control ${passwordErrors.confirmPassword ? "is-invalid" : ""}`}
-                                                name="confirmPassword"
-                                                value={passwordData.confirmPassword}
-                                                onChange={handlePasswordInputChange}
-                                                placeholder="Confirm new password"
-                                            />
-                                            <button
-                                                className="btn btn-outline-secondary"
-                                                type="button"
-                                                onClick={() => togglePasswordVisibility("confirm")}
-                                            >
-                                                <i className={`fa-solid ${showPasswords.confirm ? "fa-eye-slash" : "fa-eye"}`}></i>
-                                            </button>
-                                            {passwordErrors.confirmPassword && (
-                                                <div className="invalid-feedback">{passwordErrors.confirmPassword}</div>
-                                            )}
+                                            {/* Confirm Password */}
+                                            <div className="col-md-6">
+                                                <label className="form-label text-white">
+                                                    Confirm New Password <span className="text-danger">*</span>
+                                                </label>
+                                                <InputField
+                                                    registration={register("confirmPassword")}
+                                                    error={errors.confirmPassword}
+                                                    placeholder="Confirm new password"
+                                                    type="password"
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
 
-                                {/* Action Buttons */}
-                                <div className="d-flex gap-3 justify-content-end mt-4 pt-4 border-top" style={{ borderColor: "rgba(255,255,255,0.1) !important" }}>
-                                    <Button
-                                        variant="outline"
-                                        type="button"
-                                        onClick={() => navigate("/admin/profile")}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        type="submit"
-                                        isLoading={changePasswordMutation.isLoading}
-                                    >
-                                        Update Password
-                                    </Button>
-                                </div>
-                            </form>
+                                        {/* Action Buttons */}
+                                        <div className="d-flex gap-3 justify-content-end mt-4 pt-4 border-top" style={{ borderColor: "rgba(255,255,255,0.1) !important" }}>
+                                            <Button
+                                                variant="outline"
+                                                type="button"
+                                                onClick={() => navigate("/admin/profile")}
+                                            >
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                variant="primary"
+                                                type="submit"
+                                                isLoading={changePasswordMutation.isLoading}
+                                            >
+                                                Update Password
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </Form>
                         </div>
                     )}
                 </div>

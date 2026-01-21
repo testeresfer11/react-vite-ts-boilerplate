@@ -1,12 +1,11 @@
 const httpStatus = require("http-status");
 const catchAsync = require("../../utils/catchAsync");
-const { paginate } = require("../../services/admin.service");
-const { Content } = require("../../models/content.model");
+const { contentService } = require("../../services");
 
 // Create new content
 const createContent = catchAsync(async (req, res) => {
     const { name, description, content } = req.body;
-    const data = await Content.create({ name, description, content });
+    const data = await contentService.createContent({ name, description, content });
     res.status(httpStatus.CREATED).send({
         success: true,
         message: "Content created successfully",
@@ -19,17 +18,17 @@ const getContent = catchAsync(async (req, res) => {
     const { page = 1, limit = 10, search } = req.query;
 
     try {
-        let query = { isDeleted: false };
+        let filter = { isDeleted: false };
         if (search) {
-            query = {
-                ...query,
+            filter = {
+                ...filter,
                 $or: [
                     { name: { $regex: search, $options: 'i' } },
                     { description: { $regex: search, $options: 'i' } }
                 ]
             };
         }
-        const { data, pagination } = await paginate(Content, query, page, limit);
+        const { data, pagination } = await contentService.queryContents(filter, page, limit);
 
         res.status(httpStatus.OK).send({
             success: true,
@@ -49,7 +48,7 @@ const getContent = catchAsync(async (req, res) => {
 // Get single content by ID
 const getContentById = catchAsync(async (req, res) => {
     const { id } = req.params;
-    const data = await Content.findOne({ _id: id, isDeleted: false });
+    const data = await contentService.getContentById(id);
 
     if (!data) {
         return res.status(httpStatus.NOT_FOUND).send({
@@ -70,24 +69,29 @@ const editContent = catchAsync(async (req, res) => {
     const { name, description, content } = req.body;
     const { id } = req.params;
 
-    const existingContent = await Content.findOne({ _id: id, isDeleted: false });
+    // Use try-catch to handle service errors (like NOT_FOUND) if we want to preserve specific error responses
+    // Or let catchAsync handle it if we trust the global handler.
+    // The previous implementation checked for existence manually.
+    // The service throws ApiError(NOT_FOUND).
+    // I will try to use the service and let standard error handling work, OR catch specifically to return the same format.
+    // The previous implementation returned explicit JSON structure.
 
-    if (!existingContent) {
-        return res.status(httpStatus.NOT_FOUND).send({
-            success: false,
-            message: "Content not found"
+    try {
+        const data = await contentService.updateContentById(id, { name, description, content });
+        res.status(httpStatus.OK).send({
+            success: true,
+            message: "Content updated successfully",
+            data
         });
+    } catch (error) {
+        if (error.statusCode === httpStatus.NOT_FOUND) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                success: false,
+                message: "Content not found"
+            });
+        }
+        throw error;
     }
-
-    const data = await Content.findByIdAndUpdate(id, {
-        $set: { name, description, content }
-    }, { new: true });
-
-    res.status(httpStatus.OK).send({
-        success: true,
-        message: "Content updated successfully",
-        data
-    });
 });
 
 // Soft delete content
@@ -101,21 +105,22 @@ const deleteContent = catchAsync(async (req, res) => {
         });
     }
 
-    const existingContent = await Content.findOne({ _id: id, isDeleted: false });
+    try {
+        await contentService.deleteContentById(id);
 
-    if (!existingContent) {
-        return res.status(httpStatus.NOT_FOUND).send({
-            success: false,
-            message: "Content not found"
+        return res.status(httpStatus.OK).send({
+            success: true,
+            message: "Content deleted successfully"
         });
+    } catch (error) {
+        if (error.statusCode === httpStatus.NOT_FOUND) {
+            return res.status(httpStatus.NOT_FOUND).send({
+                success: false,
+                message: "Content not found"
+            });
+        }
+        throw error;
     }
-
-    await Content.findByIdAndUpdate(id, { $set: { isDeleted: true } });
-
-    return res.status(httpStatus.OK).send({
-        success: true,
-        message: "Content deleted successfully"
-    });
 });
 
 module.exports = { createContent, getContent, getContentById, editContent, deleteContent };
