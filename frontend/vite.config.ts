@@ -9,5 +9,14 @@ export default defineConfig({
     alias: {
       '@': path.resolve('./src'),
     },
-  }
+  },
+  server: {
+    proxy: {
+      '/v1': {
+        target: 'http://localhost:6666',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

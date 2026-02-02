@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
-const scehma = mongoose.Schema({
-    title: {
+
+const contentSchema = mongoose.Schema({
+    name: {
         type: String,
         required: true
     },
@@ -8,11 +9,18 @@ const scehma = mongoose.Schema({
         type: String,
         required: true
     },
-},
+    content: {
+        type: String,
+        required: true
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    }
+}, {
+    timestamps: true,
+})
 
-    {
-        timestamps: true,
-    })
-const Content = mongoose.model("Content", scehma)
+const Content = mongoose.model("Content", contentSchema)
 
 module.exports = { Content }

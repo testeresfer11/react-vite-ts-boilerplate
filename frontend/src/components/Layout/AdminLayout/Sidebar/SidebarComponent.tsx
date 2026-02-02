@@ -2,7 +2,6 @@ import {
   Sidebar,
   Menu,
   MenuItem,
-  SubMenu,
   menuClasses,
   MenuItemStyles,
 } from "react-pro-sidebar";
@@ -164,6 +163,15 @@ export const SidebarComponent = ({
             </Menu>
             <Menu menuItemStyles={menuItemStyles}>
               <MenuItem
+                onClick={to("/admin/content")}
+                active={active === "content"}
+                icon={<i className="fa-solid fa-file-alt menu-icon" style={{ color: '#CB3CFF' }}></i>}
+              >
+                Content Management
+              </MenuItem>
+            </Menu>
+            <Menu menuItemStyles={menuItemStyles}>
+              <MenuItem
                 onClick={to("/admin/users")}
                 active={active === "users"}
                 icon={<img src={analytic} className="menu-icon" />}
@@ -177,11 +185,11 @@ export const SidebarComponent = ({
                 active={active === "users"}
                 icon={<img src={center} className="menu-icon" />}
               >
-               Notification Center
+                Notification Center
               </MenuItem>
             </Menu>
             <hr />
-            <div className="account-info px-3 d-flex gap-3 align-items-center">
+            <div onClick={to('/admin/profile')} style={{ cursor: 'pointer' }} className="account-info px-3 d-flex gap-3 align-items-center">
               <img src={admin} className="admin-account-icon" />
               <div className="right-details">
                 <h6 className="font-medium f-14 mb-0 text-white">John Carter</h6>

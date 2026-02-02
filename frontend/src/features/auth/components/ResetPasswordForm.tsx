@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import * as z from "zod";
 import { Button } from "@/components/Elements";
 import { Form, InputField } from "@/components/Form";
@@ -7,11 +7,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { animations } from "./Layout";
 import useAnimateFn from "@/hooks/animate";
 import { useState } from "react";
-import { useNotificationStore } from "@/stores/notifications";
+import toast from "react-hot-toast";
+import { resetPassword } from "../api/reset";
 
 const schema = z.object({
   new_password: z.string().min(1, "Please enter new password"),
   confirm_password: z.string().min(1, "Please enter confirm password"),
+}).refine((data) => data.new_password === data.confirm_password, {
+  message: "Passwords do not match",
+  path: ["confirm_password"],
 });
 
 type ForgetValues = {
@@ -21,21 +25,24 @@ type ForgetValues = {
 
 export const ResetPasswordForm = () => {
   const navigate = useNavigate();
-  const { addNotification } = useNotificationStore();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+
   const { animate, callAfterAnimateFn } = useAnimateFn();
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values: ForgetValues) => {
     try {
+      if (!token) {
+        toast.error("Invalid or missing reset token");
+        return;
+      }
       setLoading(true);
-      values;
-      // await forgetPassword(values);
-      addNotification({
-        type: "success",
-        title: "Success",
-        message: "Reset password link has been to sent to your email address!",
-      });
-    } catch (e) {
+      await resetPassword(token, { password: values.new_password });
+      toast.success("Password has been reset successfully!");
+      navigate("/auth/login");
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || "Failed to reset password");
     } finally {
       setLoading(false);
     }
@@ -102,7 +109,7 @@ export const ResetPasswordForm = () => {
                   </div>
                   <div className="d-flex justify-content-center">
                     <Button
-                   
+
                       isLoading={loading}
                       type="submit"
                       className="w-100 mt-2"

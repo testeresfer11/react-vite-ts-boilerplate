@@ -7,3 +7,4 @@ export type ForgetPasswordDTO = {
 export const forgetPassword  = (data: ForgetPasswordDTO) => {
   return axios.post('/auth/forgot-password', data);
 };
+

@@ -3,7 +3,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter as Router } from "react-router-dom";
-import { Notifications } from "@/components/Notifications/Notifications";
+import { Toaster } from "react-hot-toast";
 import { queryClient } from "@/lib/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Spinner } from "@/components/Elements";
@@ -43,7 +43,26 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         <HelmetProvider>
           <QueryClientProvider client={queryClient}>
             {process.env.NODE_ENV !== "test" && <ReactQueryDevtools />}
-            <Notifications />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                },
+                success: {
+                  style: {
+                    background: '#10B981',
+                  },
+                },
+                error: {
+                  style: {
+                    background: '#EF4444',
+                  },
+                },
+              }}
+            />
             <AnimatePresence mode="wait">
               <Router>{children}</Router>
             </AnimatePresence>

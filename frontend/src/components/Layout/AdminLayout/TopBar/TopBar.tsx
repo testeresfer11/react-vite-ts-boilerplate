@@ -61,6 +61,11 @@ export default function TopBar({
     );
   };
 
+  const handleProfile = () => {
+    handleMenuClose();
+    navigate("/admin/profile");
+  }
+
   const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setMobileMoreAnchorEl(event.currentTarget);
   };
@@ -82,7 +87,7 @@ export default function TopBar({
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      <MenuItem onClick={handleProfile}>Profile</MenuItem>
       <MenuItem onClick={logout}>Logout</MenuItem>
     </Menu>
   );
@@ -104,8 +109,8 @@ export default function TopBar({
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
     >
-      <MenuItem onClick={handleProfileMenuOpen}>Profile</MenuItem>
-      <MenuItem onClick={handleProfileMenuOpen}>Logout</MenuItem>
+      <MenuItem onClick={() => { handleMobileMenuClose(); navigate("/admin/profile"); }}>Profile</MenuItem>
+      <MenuItem onClick={() => { handleMobileMenuClose(); logout(); }}>Logout</MenuItem>
     </Menu>
   );
 

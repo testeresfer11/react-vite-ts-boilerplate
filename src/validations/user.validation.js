@@ -35,6 +35,7 @@ const updateUser = {
       image:Joi.string(),
       phone:Joi.string().required(),
       firstName:Joi.string().required(),
+      address: Joi.string().required(),
       lastName:Joi.string().required()
     })
     .min(1),
@@ -50,7 +51,7 @@ const changePassword = {
   body:Joi.object().keys({
     oldPassword:Joi.string().required(),
     newPassword:Joi.string().required(),
-    confirmPassword:Joi.string().required()
+    // confirmPassword:Joi.string().required()
   })
 }
 

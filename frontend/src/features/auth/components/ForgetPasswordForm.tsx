@@ -7,7 +7,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { animations } from "./Layout";
 import useAnimateFn from "@/hooks/animate";
 import { useState } from "react";
-import { useNotificationStore } from "@/stores/notifications";
+import toast from "react-hot-toast";
+import { forgetPassword } from "../api/forget";
 
 const schema = z.object({
   email: z
@@ -22,7 +23,7 @@ type ForgetValues = {
 
 export const ForgetPasswordForm = () => {
   const navigate = useNavigate();
-  const { addNotification } = useNotificationStore();
+
   const { animate, callAfterAnimateFn } = useAnimateFn();
   const [loading, setLoading] = useState(false);
 
@@ -30,12 +31,11 @@ export const ForgetPasswordForm = () => {
     try {
       setLoading(true);
       values;
-      // await forgetPassword(values);
-      addNotification({
-        type: "success",
-        title: "Success",
-        message: "Reset password link has been to sent to your email address!",
-      });
+      const res = await forgetPassword(values);
+      console.log(res, 'res')
+      navigate(`/auth/verify-otp?resetToken=${res.data.resetToken}&emailToken=${res.data.emailToken}`)
+
+      toast.success("OTP has been sent to your email address!");
     } catch (e) {
     } finally {
       setLoading(false);

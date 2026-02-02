@@ -35,12 +35,12 @@ app.use(compression());
 
 // enable cors
 const corsOptions = {
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization'], 
   credentials: true, 
 };
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); 
 
 // jwt authentication
 app.use(passport.initialize());

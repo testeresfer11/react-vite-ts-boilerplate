@@ -38,8 +38,9 @@ const slotMachine = {
 
 const postContent = {
   body: Joi.object().keys({
-    title: Joi.string().required(),
+    name: Joi.string().required(),
     description: Joi.string().required(),
+    content: Joi.string().required(),
   }),
 };
 const getContent = {
@@ -53,8 +54,9 @@ const editContent = {
     id: Joi.custom(objectId).required(),
   }),
   body: Joi.object().keys({
-    title: Joi.string().required(),
+    name: Joi.string().required(),
     description: Joi.string().required(),
+    content: Joi.string().required(),
   }),
 };
 
