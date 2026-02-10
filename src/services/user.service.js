@@ -2,8 +2,6 @@ const httpStatus = require('http-status');
 const ApiError = require('../utils/ApiError');
 const moment = require('moment');
 const { User } = require('../models/user.model');
-const { ShiftSummary } = require('../models/shiftSummary.model');
-const { ShiftReport } = require('../models/shiftReport.model');
 
 /**
  * Create a user
@@ -115,77 +113,6 @@ const checkOtp = async (userId, otp, model) => {
   return { success: true, message: "OTP verified successfully" };
 };
 
-function generateTicketNumber() {
-  const ticketNumber = Math.floor(100000 + Math.random() * 900000);
-  return ticketNumber;
-}
-
-const generateUniqueId = async (model, field) => {
-  let id = generateTicketNumber();
-  let existingRecord = await model.findOne({ [field]: id });
-  while (existingRecord) {
-    id = generateTicketNumber();
-    existingRecord = await model.findOne({ [field]: id });
-  }
-  return id;
-};
-
-const summaryData = async (query, date = new Date().toISOString()) => {
-  try {
-    const existingSummary = await ShiftSummary.findOne(query)
-    const getShiftReportData = await ShiftReport.find(query)
-    const { totalIns, totalOuts } = calculateTotals(getShiftReportData);
-    const stats = calculateSummaryStats(existingSummary, totalIns, totalOuts)
-
-    if (existingSummary) {
-      Object.assign(existingSummary, {
-        totalIn: totalIns,
-        totalOut: totalOuts,
-        profit: stats.profit,
-        short: stats.short,
-        totalClear: stats.totalClear,
-        matchPercentage: stats.matchPercentage,
-      });
-      await existingSummary.save()
-    } else {
-      await ShiftSummary.create({
-        profit: stats.profit,
-        totalIn: totalIns,
-        totalOut: totalOuts,
-        totalClear: stats.totalClear,
-        short: stats.short,
-        date,
-        numberPersonId: query.numberPersonId
-      })
-    }
-  } catch (error) {
-    throw error
-  }
-}
-
-const calculateTotals = (reports) => {
-  return reports.reduce((totals, report) => {
-    if (report.totalIn) totals.totalIns += report.totalIn;
-    if (report.totalOut) totals.totalOuts += report.totalOut;
-    return totals;
-  }, { totalIns: 0, totalOuts: 0 });
-};
-
-const calculateSummaryStats = (summary, totalIns, totalOuts) => {
-  const payroll = summary?.payroll ?? 0;
-  const match = summary?.match ?? 0;
-  const misc = summary?.misc ?? 0;
-  const actualMoney = summary?.actualMoney ?? 0;
-
-  const profit = totalOuts - totalIns;
-  const totalClear = profit - payroll - match - misc;
-  const short = totalClear - actualMoney;
-  const matchPercentage = Number((match / totalIns).toFixed(2));
-  return {
-    payroll, profit, totalClear, short, matchPercentage, match, misc, actualMoney
-  }
-}
-
 
 
 module.exports = {
@@ -197,9 +124,4 @@ module.exports = {
   deleteUserById,
   storeOtp,
   checkOtp,
-  generateTicketNumber,
-  generateUniqueId,
-  summaryData,
-  calculateTotals,
-  calculateSummaryStats
 };
