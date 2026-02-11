@@ -101,7 +101,7 @@ const generateAuthTokens = async (user) => {
 //   }
 
 //   const otp = generateOTP(); 
-  
+
 //   const otpExpiry = moment().add(10, 'minutes');
 //   await userService.storeOtp(user._id, otp, otpExpiry);
 //   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
@@ -113,15 +113,15 @@ const generateAuthTokens = async (user) => {
 // };
 
 
-const generateResetPasswordToken = async (email , model) => {
+const generateResetPasswordToken = async (email, model) => {
   // Fetch the user by email
-  const user = await userService.getUserByEmail(email , model);
+  const user = await userService.getUserByEmail(email, model);
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'No users found with this email');
   }
 
-  const otp = generateOTP(); 
-  
+  const otp = generateOTP();
+
   const otpExpiry = moment().add(10, 'minutes');
   await userService.storeOtp(user._id, otp, model);
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');

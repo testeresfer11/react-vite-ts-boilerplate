@@ -12,12 +12,14 @@ const schema = z.object({
   name: z.string().min(1, "Please enter name"),
   email: z.string().min(1, "Please enter email address"),
   password: z.string().min(1, "Please enter password"),
+  phone: z.string().optional(),
 });
 
 type RegisterValues = {
   name: string;
   email: string;
   password: string;
+  phone?: string;
 };
 
 type RegisterFormProps = {
@@ -63,6 +65,13 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                     label="Password"
                     error={formState.errors["password"]}
                     registration={register("password")}
+                  />
+                  <InputField
+                    type="text"
+                    label="Phone Number"
+                    blueLabel
+                    error={formState.errors["phone"]}
+                    registration={register("phone")}
                   />
                   <div className="d-flex justify-content-center">
                     <Button

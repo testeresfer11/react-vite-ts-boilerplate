@@ -15,7 +15,7 @@ router.post('/reset-password/:token', validate(authValidation.resetPassword), au
 router.post('/send-verification-email', auth(), authController.sendVerificationEmail);
 router.post('/verify-email', validate(authValidation.verifyEmail), authController.verifyEmail);
 router.get("/me", auth(), authController.authMe)
-router.post("/verify-otp/:token",validate(authValidation.verifyotp),authController.verifyOtp)
+router.post("/verify-otp/:token", validate(authValidation.verifyotp), authController.verifyOtp)
 router.post("/resend-otp", validate(authValidation.resendOtp), authController.resendOtp)
 module.exports = router;
 
@@ -54,10 +54,14 @@ module.exports = router;
  *                 format: password
  *                 minLength: 8
  *                 description: At least one number and one letter
+ *               phone:
+ *                 type: string
+ *                 description: User's phone number
  *             example:
  *               name: fake name
  *               email: fake@example.com
  *               password: password1
+ *               phone: "+1234567890"
  *     responses:
  *       "201":
  *         description: Created
@@ -291,5 +295,3 @@ module.exports = router;
  *               code: 401
  *               message: verify email failed
  */
-
-

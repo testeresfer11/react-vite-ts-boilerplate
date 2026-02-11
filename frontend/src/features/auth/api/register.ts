@@ -1,13 +1,11 @@
 import { axios } from '@/lib/axios';
-
 import { UserResponse } from '../types';
 
 export type RegisterCredentialsDTO = {
-  first_name: string;
-  last_name: string;
-  legal_company_name: string;
+  name: string;
   email: string;
-  phone_number: string;
+  password: string;
+  phone?: string;
 };
 
 export const registerWithEmailAndPassword = (
