@@ -42,6 +42,7 @@ module.exports = router;
  *               - name
  *               - email
  *               - password
+ *               - countryCode
  *             properties:
  *               name:
  *                 type: string
@@ -57,11 +58,15 @@ module.exports = router;
  *               phone:
  *                 type: string
  *                 description: User's phone number
+ *               countryCode:
+ *                 type: string
+ *                 description: User's country code (e.g., +91)
  *             example:
  *               name: fake name
  *               email: fake@example.com
  *               password: password1
- *               phone: "+1234567890"
+ *               phone: "1234567890"
+ *               countryCode: "+91"
  *     responses:
  *       "201":
  *         description: Created
@@ -319,4 +324,96 @@ module.exports = router;
  *             example:
  *               code: 400
  *               message: Invalid OTP
+ *
+ * /auth/me:
+ *   get:
+ *     summary: Get current user info
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ * /auth/verify-otp/{token}:
+ *   post:
+ *     summary: Verify OTP for password reset
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Reset password token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - otp
+ *             properties:
+ *               otp:
+ *                 type: string
+ *             example:
+ *               otp: "123456"
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       "400":
+ *         description: Invalid OTP
+ *
+ * /auth/resend-otp:
+ *   post:
+ *     summary: Resend OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - emailToken
+ *             properties:
+ *               emailToken:
+ *                 type: string
+ *             example:
+ *               emailToken: "encoded_email_token"
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: string
+ *                   description: New reset password token
  */
+

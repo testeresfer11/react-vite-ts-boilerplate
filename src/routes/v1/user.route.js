@@ -16,7 +16,7 @@ router
   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 
-router.route("/password").post(auth(),validate(userValidation.changePassword),userController.changePassword)
+router.route("/password").post(auth(), validate(userValidation.changePassword), userController.changePassword)
 router.route("/edit").post(auth(), validate(userValidation.updateUser), userController.updateUser)
 module.exports = router;
 
@@ -250,4 +250,78 @@ module.exports = router;
  *         $ref: '#/components/responses/Forbidden'
  *       "404":
  *         $ref: '#/components/responses/NotFound'
+ *
+ * /users/password:
+ *   post:
+ *     summary: Change password
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 format: password
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 8
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       "400":
+ *         description: Invalid old password
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
+ *
+ * /users/edit:
+ *   post:
+ *     summary: Update current user profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               phone:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 description: Image URL
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       "401":
+ *         $ref: '#/components/responses/Unauthorized'
  */
+
