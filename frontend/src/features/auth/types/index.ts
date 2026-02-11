@@ -22,3 +22,8 @@ export type UserResponse = {
   tokens: Tokens;
   user: AuthUser;
 };
+
+export type RegisterResponse = {
+  success: boolean;
+  message: string;
+};

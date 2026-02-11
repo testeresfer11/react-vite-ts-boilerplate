@@ -6,11 +6,18 @@ const { tokenTypes } = require('../config/tokens');
 const { generateEmailToken } = require('../services/auth.service');
 const jwt = require("jsonwebtoken");
 const { User } = require('../models/user.model');
+const moment = require('moment');
 
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
-  const tokens = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.CREATED).send({ user, tokens });
+  const otp = tokenService.generateOTP();
+  const otpExpiry = moment().add(10, 'minutes');
+  await userService.storeOtp(user._id, otp, User, otpExpiry);
+  await emailService.sendOtpEmail(user.email, otp);
+  res.status(httpStatus.CREATED).send({
+    success: true,
+    message: "OTP sent to your email. Please verify to complete registration."
+  });
 });
 
 const login = catchAsync(async (req, res) => {
@@ -80,8 +87,10 @@ const sendVerificationEmail = catchAsync(async (req, res) => {
 });
 
 const verifyEmail = catchAsync(async (req, res) => {
-  await authService.verifyEmail(req.query.token, User);
-  res.status(httpStatus.NO_CONTENT).send();
+  const { email, otp } = req.body;
+  const user = await authService.verifyEmail(email, otp, User);
+  const tokens = await tokenService.generateAuthTokens(user);
+  res.send({ user, tokens, message: "Email verified successfully" });
 });
 const authMe = catchAsync(async (req, res) => {
   const data = await getUserById(req.user.id, User)

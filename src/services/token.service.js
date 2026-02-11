@@ -123,7 +123,7 @@ const generateResetPasswordToken = async (email, model) => {
   const otp = generateOTP();
 
   const otpExpiry = moment().add(10, 'minutes');
-  await userService.storeOtp(user._id, otp, model);
+  await userService.storeOtp(user._id, otp, model, otpExpiry);
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
   const resetPasswordToken = generateToken(user.id, expires, tokenTypes.RESET_PASSWORD);
 
@@ -148,6 +148,7 @@ module.exports = {
   generateToken,
   saveToken,
   verifyToken,
+  generateOTP,
   generateAuthTokens,
   generateResetPasswordToken,
   generateVerifyEmailToken,

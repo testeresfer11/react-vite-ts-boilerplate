@@ -65,10 +65,20 @@ If you did not create an account, then ignore this email.`;
   await sendEmail(to, subject, text);
 };
 
+const sendOtpEmail = async (to, otp) => {
+  const subject = 'Your OTP for Registration';
+  const text = `Dear user,
+Your OTP for registration is: ${otp}.
+This OTP is valid for 10 minutes.
+If you did not request this, please ignore this email.`;
+  await sendEmail(to, subject, text);
+};
+
 module.exports = {
   transport,
   sendEmail,
   sendResetPasswordEmail,
   sendVerificationEmail,
-  sendAccountConfirmationEmail
+  sendAccountConfirmationEmail,
+  sendOtpEmail
 };

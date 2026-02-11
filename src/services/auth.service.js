@@ -13,8 +13,8 @@ const bcrypt = require("bcryptjs")
  * @param {string} password
  * @returns {Promise<User>}
  */
-const loginUserWithEmailAndPassword = async (email, password , model) => {
-  const user = await userService.getUserByEmail(email ,model);
+const loginUserWithEmailAndPassword = async (email, password, model) => {
+  const user = await userService.getUserByEmail(email, model);
   if (!user || !(await user.isPasswordMatch(password))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Incorrect email or password');
   }
@@ -59,10 +59,10 @@ const refreshAuth = async (refreshToken) => {
  * @param {string} newPassword
  * @returns {Promise}
  */
-const resetPassword = async (resetPasswordToken, newPassword , model) => {
+const resetPassword = async (resetPasswordToken, newPassword, model) => {
   try {
     const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, tokenTypes.RESET_PASSWORD);
-    const user = await userService.getUserById(resetPasswordTokenDoc.user , model);
+    const user = await userService.getUserById(resetPasswordTokenDoc.user, model);
     if (!user) {
       throw new Error();
     }
@@ -70,7 +70,7 @@ const resetPassword = async (resetPasswordToken, newPassword , model) => {
     if (isSamePassword) {
       return { message: "New password cannot be same as the old password" };
     }
-    await userService.updateUserById(user.id, { password: newPassword } , model);
+    await userService.updateUserById(user.id, { password: newPassword }, model);
     await Token.deleteMany({ user: user.id, type: tokenTypes.RESET_PASSWORD });
   } catch (error) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Password reset failed');
@@ -82,33 +82,32 @@ const resetPassword = async (resetPasswordToken, newPassword , model) => {
  * @param {string} verifyEmailToken
  * @returns {Promise}
  */
-const verifyEmail = async (verifyEmailToken ,model) => {
+const verifyEmail = async (email, otp, model) => {
   try {
-    const verifyEmailTokenDoc = await tokenService.verifyToken(verifyEmailToken, tokenTypes.VERIFY_EMAIL);
-    const user = await userService.getUserById(verifyEmailTokenDoc.user , model);
+    const user = await userService.getUserByEmail(email, model);
     if (!user) {
-      throw new Error();
+      throw new Error('User not found');
     }
-    await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_EMAIL });
-    await userService.updateUserById(user.id, { isEmailVerified: true });
+    await userService.checkOtp(user._id, otp, model);
+    await userService.updateUserById(user.id, { isEmailVerified: true }, model);
+    return user;
   } catch (error) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email verification failed');
+    throw new ApiError(httpStatus.BAD_REQUEST, error.message || 'Email verification failed');
   }
 };
-const generateEmailToken = async (email , model) => {
-  const user = await model.findOne({ email }); 
+const generateEmailToken = async (email, model) => {
+  const user = await model.findOne({ email });
 
   if (!user) {
     throw new Error('User not found');
   }
-
   const resetPasswordToken = jwt.sign(
     { email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' } 
+    { expiresIn: '1h' }
   );
 
-  return resetPasswordToken ; 
+  return resetPasswordToken;
 };
 
 module.exports = {

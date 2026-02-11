@@ -2,34 +2,48 @@ import { Link, useNavigate } from "react-router-dom";
 import * as z from "zod";
 import { Button } from "@/components/Elements";
 import { Form, InputField } from "@/components/Form";
-import { useRegister } from "@/lib/auth";
+import { useMutation } from "@tanstack/react-query";
+import { registerWithEmailAndPassword } from "../api/register";
+import toast from "react-hot-toast";
 import "../routes/auth.css";
 import { AnimatePresence, motion } from "framer-motion";
 import { animations } from "./Layout";
 import useAnimateFn from "@/hooks/animate";
 
+import { InputPhone } from "@/components/Form/InputPhone";
+import { getCountryCallingCode } from "react-phone-number-input";
+import type { Country } from "react-phone-number-input";
+
 const schema = z.object({
   name: z.string().min(1, "Please enter name"),
   email: z.string().min(1, "Please enter email address"),
   password: z.string().min(1, "Please enter password"),
-  phone: z.string().optional(),
+  phone: z.string().min(1, "Please enter phone number"),
+  countryCode: z.string().min(1, "Please select country code"),
 });
 
 type RegisterValues = {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  phone: string;
+  countryCode: string;
 };
 
-type RegisterFormProps = {
-  onSuccess: () => void;
-};
-
-export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
-  const registerFn = useRegister();
+export const RegisterForm = () => {
   const navigate = useNavigate();
   const { animate, callAfterAnimateFn } = useAnimateFn();
+
+  const registerMutation = useMutation({
+    mutationFn: registerWithEmailAndPassword,
+    onSuccess: (data: any, variables: any) => {
+      toast.success(data.message || "OTP sent to your email");
+      navigate("/auth/verify-email", { state: { email: variables.email } });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Registration failed");
+    }
+  });
 
   return (
     <AnimatePresence>
@@ -40,11 +54,16 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             <h6 className="mb-4 font-light">Please enter your detail to sign up</h6>
             <Form<RegisterValues, typeof schema>
               onSubmit={async (values) => {
-                registerFn.mutate(values, { onSuccess });
+                registerMutation.mutate(values);
               }}
               schema={schema}
+              options={{
+                defaultValues: {
+                  countryCode: "+91",
+                },
+              }}
             >
-              {({ register, formState }) => (
+              {({ register, formState, control, setValue }) => (
                 <>
                   <InputField
                     type="text"
@@ -66,17 +85,24 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
                     error={formState.errors["password"]}
                     registration={register("password")}
                   />
-                  <InputField
-                    type="text"
+                  <InputPhone
                     label="Phone Number"
                     blueLabel
                     error={formState.errors["phone"]}
                     registration={register("phone")}
+                    control={control}
+                    defaultCountry="IN"
+                    onCountryChange={(country) => {
+                      if (country) {
+                        const code = getCountryCallingCode(country as Country);
+                        setValue("countryCode", `+${code}`);
+                      }
+                    }}
                   />
                   <div className="d-flex justify-content-center">
                     <Button
                       startIcon={<i className="fa-solid fa-lock" />}
-                      isLoading={registerFn.isLoading}
+                      isLoading={registerMutation.isLoading}
                       type="submit"
                       className="w-100"
                     >

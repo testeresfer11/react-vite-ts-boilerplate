@@ -78,9 +78,9 @@ const deleteUserById = async (userId) => {
   await user.remove();
   return user;
 };
-const storeOtp = async (userId, otp, model) => {
+const storeOtp = async (userId, otp, model, otpExpiration) => {
   const user = await model.findByIdAndUpdate(userId, {
-    $set: { otp: otp }
+    $set: { otp: otp, otpExpiration: otpExpiration }
   })
   return user
 }
@@ -107,7 +107,7 @@ const checkOtp = async (userId, otp, model) => {
   }
   await model.updateOne(
     { _id: userId },
-    { $unset: { otp: "" } }
+    { $unset: { otp: "", otpExpiration: "" } }
   );
 
   return { success: true, message: "OTP verified successfully" };

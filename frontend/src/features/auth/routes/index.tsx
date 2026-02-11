@@ -5,6 +5,7 @@ import { Register } from "./Register";
 import { ForgetPassword } from "./ForgetPassword";
 import { ResetPassword } from "./ResetPassword";
 import { OtpVerify } from "./OtpVerify";
+import { VerifyEmail } from "./VerifyEmail";
 
 export const AuthRoutes = () => {
   return (
@@ -14,6 +15,7 @@ export const AuthRoutes = () => {
       <Route path="forget" element={<ForgetPassword />} />
       <Route path="reset" element={<ResetPassword />} />
       <Route path="verify-otp" element={<OtpVerify />} />
+      <Route path="verify-email" element={<VerifyEmail />} />
     </Routes>
   );
 };

@@ -6,7 +6,8 @@ const register = {
     email: Joi.string().required().email(),
     password: Joi.string().required().custom(password),
     name: Joi.string().required(),
-    phone: Joi.string(),
+    phone: Joi.string().required(),
+    countryCode: Joi.string().required(),
   }),
 };
 
@@ -45,8 +46,9 @@ const resetPassword = {
 };
 
 const verifyEmail = {
-  query: Joi.object().keys({
-    token: Joi.string().required(),
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    otp: Joi.string().required(),
   }),
 };
 const verifyotp = {

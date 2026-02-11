@@ -22,7 +22,7 @@ export const FieldWrapper = (props: FieldWrapperProps) => {
   const { label, className, error, children } = props;
   return (
     <div className="mb-1 input-box">
-      <label className={clsx("form-label", className)}>{label}</label>
+      <label className={clsx("form-label", className, props.blueLabel && "blue-label")}>{label}</label>
       {children}
       <AnimatePresence>
         {error?.message && (
